@@ -1,0 +1,213 @@
+/*
+ID: nguyens1
+LANG: C++
+TASK: castle
+*/
+
+#include <iostream>
+#include <fstream>
+#include <limits.h>
+using namespace std;
+#define NIL -1
+
+ofstream fpout("castle.out");
+int map[51][51];
+bool visited[51][51];
+int N, M;
+
+bool isConected(int r1, int c1, int r2, int c2 ){
+	int num1 = map[r1][c1], num2 = map[r2][c2];
+	//cout << "NUM :  " << num1 << "  " <<  num2 << endl;
+	int d1[] = {1,2,4,8};
+	int d2[] = {1,2,4,8};
+
+	if (num1 == 0 || num2 == 0)
+	for (int i = 3; i >= 0; --i){
+		if (num1 >= d1[i]){
+			num1 = num1 - d1[i];
+			d1[i] = NIL;
+		}
+
+		if (num1 == 0)
+			break;
+	}
+
+	for (int i = 3; i >= 0; --i){
+		if (num2 >= d2[i]){
+			num2 = num2 - d2[i];
+			d2[i] = NIL;
+		}
+
+		if (num2 == 0)
+			break;
+	}
+
+	//cout << d1[3] << " " << d2[1] << " " << c1 << " " << c2 << endl;
+	if (r1 == r2){
+		if ((d1[2] != NIL && d2[0] != NIL) && c1 < c2)
+			return true;
+		else if (d1[0] != NIL && d2[2] != NIL && c1 > c2)
+			return true;
+	}
+	else if (c1 == c2){
+		if ((d1[3] != NIL && d2[1] != NIL) && r1 < r2)
+			return true;
+		else if (d1[1] != NIL && d2[3] != NIL && r1 > r2)
+			return true;
+	}
+
+	return false;
+}
+
+void dfs(int a, int b, bool visited[][51], int &time){
+	visited[a][b] = true;
+	
+	if (b - 1 >= 0 && !visited[a][b - 1] && isConected(a, b, a, b - 1)){
+		time++;
+		dfs(a, b - 1, visited, time);
+	}
+
+	if (b + 1 < M && !visited[a][b + 1] && isConected(a, b, a, b + 1)){
+		time++;
+		dfs(a, b + 1, visited, time);
+	}
+
+	if (a - 1 >= 0 && !visited[a - 1][b] && isConected(a, b, a - 1, b)){
+		time++;
+		dfs(a - 1, b, visited, time);
+	}
+
+	if (a + 1 < N && !visited[a + 1][b] && isConected(a, b, a + 1, b )){
+		time++;
+		dfs(a + 1, b, visited, time);
+	}
+
+}
+
+// set visited
+void setVisited(bool visited[][51]){
+	for (int i = 0; i < N; ++i)
+		for (int j = 0; j < M; ++j)
+			visited[i][j] = false;
+}
+
+int main(int argc, char const *argv[])
+{
+	ifstream fpin("castle.in");
+	fpin >> M >> N;
+
+	int r, c;
+
+	for (int i = 0; i < N; ++i){
+		for (int j = 0; j < M; ++j){
+			fpin >> map[i][j];
+			visited[i][j] = false;
+		}
+	}
+
+	int room = INT_MIN, time, NumOfRoom = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j){
+			if (!visited[i][j]){
+				time = 1;
+				dfs(i, j, visited, time);
+				NumOfRoom++;
+				//cout << "time : " << time << endl;
+				if (time >= room){
+					room = time;
+					r = i; c = j;
+				}
+		}
+			}
+	}
+
+	
+
+	time = 1;
+	int largestR = INT_MIN;
+	setVisited(visited);
+	dfs(8, 4, visited, time);
+	for (int i = 0; i < N; ++i){
+		for (int j = 0; j < M; ++j)
+			cout << visited[i][j] << " ";
+		cout << endl;
+	}
+		
+	int rtem = INT_MIN, ctem = INT_MAX;char Dir;
+	for (int i = 0; i < N; ++i){
+		for (int j = 0; j < M; ++j){
+			if (visited[i][j]){
+				
+				if (!visited[i - 1][j] && i - 1 >= 0){
+					time = 1;
+					dfs(i - 1, j,visited, time);
+					//cout << i << j << "   /time : " <<  time << endl;
+					if (time == largestR){
+						largestR = time;
+						//cout << j << endl;
+						if (ctem > j || rtem < i){
+							rtem = i; ctem = j; Dir = 'N'; 
+							//cout << rtem << ctem << endl;
+						}
+					} else if (time > largestR){
+						ctem = j;
+						rtem = i;
+						largestR = time;
+						Dir = 'N';
+					}
+				}
+
+				if (!visited[i][j + 1] && j + 1 < M){
+					time = 1;
+					dfs(i, j + 1,visited,  time);
+					if (time == largestR){
+						//cout << i << j << "  ?time : " << time << endl;
+						//largestR = time;
+						if ((ctem > j || rtem < i ) && Dir != 'N'){
+							ctem = j;
+							rtem = i;
+							Dir = 'E';
+						}
+
+					}else if (time > largestR){
+							largestR = time;
+							rtem = i;
+							ctem = j;
+							Dir = 'E';
+						}
+				}
+
+				/*if (!visited[i][j - 1] && j - 1 >= 0){
+					time = 1;
+					dfs(i, j -1,visited,  time);
+					if (time > largestR){
+						largestR = time;
+						rtem = i; ctem = j - 1; Dir = 'W'; 
+					}
+				}*/
+
+				
+
+				/*if (!visited[i + 1][j] && i + 1 < N){
+					time = 1;
+					dfs(i + 1, j,visited, time);
+					if (time > largestR){
+						largestR = time;
+						rtem = i + 1; ctem = j; Dir = 'S'; 
+					}
+				}*/
+				//cout << Dir << endl;
+				setVisited(visited);
+				dfs(r, c, visited, time);
+			}
+			
+		}
+	}
+
+	fpout << NumOfRoom << endl;
+	fpout << room << endl;
+	fpout << largestR + room << endl;
+	fpout << rtem + 1 << " " <<  ctem + 1 << " " << Dir << endl;
+	return 0;
+}
