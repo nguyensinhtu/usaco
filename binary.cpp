@@ -97,4 +97,5 @@ for (int )*/
     cout << count << endl;
 
      return 0;
+    //problem : http://vn.spoj.com/problems/SEC/
 }
